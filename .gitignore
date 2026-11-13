@@ -1,0 +1,5 @@
+bin/
+obj/
+.minici/
+*.user
+.vs/
