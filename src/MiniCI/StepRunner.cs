@@ -19,17 +19,18 @@ public static class StepRunner
             ? baseDirectory
             : Path.GetFullPath(Path.Combine(baseDirectory, step.WorkingDirectory));
 
-        var (fileName, arguments) = ShellFor(step.Run);
+        var (fileName, shellFlag) = ShellFor();
         var startInfo = new ProcessStartInfo
         {
             FileName = fileName,
-            Arguments = arguments,
             WorkingDirectory = workingDirectory,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
             CreateNoWindow = true,
         };
+        startInfo.ArgumentList.Add(shellFlag);
+        startInfo.ArgumentList.Add(step.Run);
         if (inheritedEnv is not null)
             foreach (var (key, value) in inheritedEnv)
                 startInfo.Environment[key] = value;
@@ -76,12 +77,8 @@ public static class StepRunner
             output, error, stopwatch.Elapsed, outcome);
     }
 
-    private static (string FileName, string Arguments) ShellFor(string command)
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return ("cmd.exe", "/c " + Quote(command));
-        return ("/bin/bash", "-c " + Quote(command));
-    }
-
-    private static string Quote(string value) => "'" + value.Replace("'", "'\\''") + "'";
+    private static (string FileName, string ShellFlag) ShellFor() =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? ("cmd.exe", "/c")
+            : ("/bin/bash", "-c");
 }

@@ -100,7 +100,9 @@ public static class Cli
 
         var pipeline = PipelineLoader.Load(
             File.ReadAllText(path), Path.GetFileNameWithoutExtension(path));
-        var workingDirectory = Path.GetFullPath(Path.GetDirectoryName(path) ?? ".");
+        var directory = Path.GetDirectoryName(path);
+        var workingDirectory = Path.GetFullPath(
+            string.IsNullOrEmpty(directory) ? "." : directory);
         var store = new RunStore(workingDirectory);
         var runner = new PipelineRunner(store, maxJobs);
         var run = await runner.RunAsync(pipeline, path, workingDirectory,
